@@ -14,7 +14,7 @@
 Summary: implementation of IEEE 802.1ab (LLDP)
 Name: lldpd
 Version: 0.5.2
-Release: %mkrel 0
+Release: %mkrel 1
 License: MIT
 Group: System/Servers
 URL: https://trac.luffy.cx/lldpd/
@@ -46,6 +46,10 @@ protocol. It also handles LLDP-MED extension.
 %prep
 %setup -q
 %build
+%{__libtoolize}
+%{__aclocal}
+%{__autoconf}
+%{__automake}
 %configure \
 %if %with_snmp
    --with-snmp \
