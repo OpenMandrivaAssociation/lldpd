@@ -1,4 +1,5 @@
 # configure options
+%define with_snmp 0
 %define lldpd_user _lldpd
 %define lldpd_group _lldpd
 %define lldpd_chroot /var/run/lldpd
@@ -14,8 +15,11 @@ Source0: http://www.luffy.cx/lldpd/%{name}-%{version}.tar.gz
 Source1: lldpd.init
 Source2: lldpd.sysconfig
 
+%if %with_snmp
 BuildRequires: net-snmp-devel
 Requires:      net-snmp
+%endif
+
 BuildRequires: libxml2-devel
 Requires:      libxml2
 
@@ -43,7 +47,9 @@ protocol. It also handles LLDP-MED extension.
 %{__automake} --force
 %configure \
    --with-xml \
+%if %with_snmp
    --with-snmp \
+%endif
    --enable-cdp \
    --enable-edp \
    --enable-sonmp \
