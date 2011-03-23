@@ -1,14 +1,6 @@
 # configure options
-%define with_snmp 1
-%define with_cdp 1
-%define with_edp 1
-%define with_sonmp 1
-%define with_fdp 1
-%define with_lldpmed 1
-%define with_dot1 1
-%define with_dot3 1
-%define lldpd_user lldpd
-%define lldpd_group lldpd
+%define lldpd_user _lldpd
+%define lldpd_group _lldpd
 %define lldpd_chroot /var/run/lldpd
 
 Summary: implementation of IEEE 802.1ab (LLDP)
@@ -22,10 +14,10 @@ Source0: http://www.luffy.cx/lldpd/%{name}-%{version}.tar.gz
 Source1: lldpd.init
 Source2: lldpd.sysconfig
 
-%if %with_snmp
 BuildRequires: net-snmp-devel
 Requires:      net-snmp
-%endif
+BuildRequires: libxml2-devel
+Requires:      libxml2
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}
 
@@ -46,53 +38,26 @@ protocol. It also handles LLDP-MED extension.
 %prep
 %setup -q
 %build
+%{__aclocal} -I ./m4 --install
 %{__autoconf} --force
+%{__automake} --force
 %configure \
-%if %with_snmp
+   --with-xml \
    --with-snmp \
-%endif
-%if %with_cdp
    --enable-cdp \
-%else
-   --disable-cdp \
-%endif
-%if %with_edp
    --enable-edp \
-%else
-   --disable-edp \
-%endif
-%if %with_sonmp
    --enable-sonmp \
-%else
-   --disable-sonmp \
-%endif
-%if %with_fdp
    --enable-fdp \
-%else
-   --disable-fdp \
-%endif
-%if %with_lldpmed
    --enable-lldpmed \
-%else
-   --disable-lldpmed \
-%endif
-%if %with_dot1
    --enable-dot1 \
-%else
-   --disable-dot1 \
-%endif
-%if %with_dot3
    --enable-dot3 \
-%else
-   --disable-dot3 \
-%endif
    --with-privsep-user=%lldpd_user \
    --with-privsep-group=%lldpd_group \
    --with-privsep-chroot=%lldpd_chroot \
    --prefix=/usr --localstatedir=%lldpd_chroot --sysconfdir=/etc --libdir=%{_libdir}
 
 [ -f /usr/include/net-snmp/agent/struct.h ] || touch src/struct.h
-make %{?_smp_mflags}
+%make
 
 %install
 rm -rf $RPM_BUILD_ROOT
