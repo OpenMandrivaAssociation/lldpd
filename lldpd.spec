@@ -1,19 +1,18 @@
-# configure options
 %define with_snmp 0
-%define lldpd_user _lldpd
-%define lldpd_group _lldpd
-%define lldpd_chroot /var/run/lldpd
+%define user _lldpd
+%define chroot /var/run/lldpd
 
 Summary: implementation of IEEE 802.1ab (LLDP)
 Name: lldpd
 Version: 0.5.2
-Release: %mkrel 0
+Release: %mkrel 1
 License: MIT
 Group: System/Servers
 URL: https://trac.luffy.cx/lldpd/
 Source0: http://www.luffy.cx/lldpd/%{name}-%{version}.tar.gz
 Source1: lldpd.init
 Source2: lldpd.sysconfig
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
 %if %with_snmp
 BuildRequires: net-snmp-devel
@@ -22,8 +21,6 @@ Requires:      net-snmp
 
 BuildRequires: libxml2-devel
 Requires:      libxml2
-
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}
 
 %description
 This implementation provides LLDP sending and reception, supports VLAN
@@ -42,7 +39,7 @@ protocol. It also handles LLDP-MED extension.
 %prep
 %setup -q
 %build
-%{__aclocal} -I ./m4 --install
+%{__aclocal} -I m4 --install
 %{__autoconf} --force
 %{__automake} --force
 %configure \
@@ -57,55 +54,46 @@ protocol. It also handles LLDP-MED extension.
    --enable-lldpmed \
    --enable-dot1 \
    --enable-dot3 \
-   --with-privsep-user=%lldpd_user \
-   --with-privsep-group=%lldpd_group \
-   --with-privsep-chroot=%lldpd_chroot \
-   --prefix=/usr --localstatedir=%lldpd_chroot --sysconfdir=/etc --libdir=%{_libdir}
+   --with-privsep-user=%{user} \
+   --with-privsep-group=%{user} \
+   --with-privsep-chroot=%{chroot} \
+   --prefix=/usr --localstatedir=%{chroot} --sysconfdir=/etc --libdir=%{_libdir}
 
 [ -f /usr/include/net-snmp/agent/struct.h ] || touch src/struct.h
 %make
 
 %install
-rm -rf $RPM_BUILD_ROOT
-make install DESTDIR=$RPM_BUILD_ROOT
-install -d -m770  $RPM_BUILD_ROOT/%lldpd_chroot
-install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
-install -d $RPM_BUILD_ROOT/etc/sysconfig
-install -m644 %{SOURCE2} $RPM_BUILD_ROOT/etc/sysconfig/lldpd
-install -m755 %{SOURCE1} $RPM_BUILD_ROOT/etc/rc.d/init.d/lldpd
+rm -rf %{buildroot}
+make install DESTDIR=%{buildroot}
+install -d -m770  %{buildroot}/%{chroot}
+install -d %{buildroot}/etc/rc.d/init.d
+install -d %{buildroot}/etc/sysconfig
+install -m644 %{SOURCE2} %{buildroot}/etc/sysconfig/lldpd
+install -m755 %{SOURCE1} %{buildroot}/etc/rc.d/init.d/lldpd
 
 %pre
-# Create lldpd user/group
-if getent group %lldpd_group >/dev/null 2>&1 ; then : ; else \
- /usr/sbin/groupadd -r %lldpd_group > /dev/null 2>&1 || exit 1 ; fi
-if getent passwd %lldpd_user >/dev/null 2>&1 ; then : ; else \
- /usr/sbin/useradd -g %lldpd_group -M -r -s /bin/false \
- -c "LLDP daemon" -d %lldpd_chroot %lldpd_user 2> /dev/null \
- || exit 1 ; fi
-
-%post
-/sbin/chkconfig --add lldpd
+%_pre_useradd %{user} %{chroot} /bin/false
 
 %postun
-if [ "$1" -ge  "1" ]; then
-   /etc/rc.d/init.d/lldpd  condrestart >/dev/null 2>&1
-fi
+%_postun_userdel %{user}
+%_postun_groupdel %{user}
 
 %preun
-if [ "$1" = "0" ]; then
-   /sbin/chkconfig --del lldpd
-fi
+%_preun_service %{name}
+
+%post
+%_post_service %{name}
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+[ "%{buildroot}" != "/" ] && rm -rf %{buildroot}
 
 %files
 %defattr(-,root,root,-)
-%doc CHANGELOG 
+%doc CHANGELOG
 %doc %_docdir/lldpd/README
-%_sbindir/lldpd 
+%_sbindir/lldpd
 %_sbindir/lldpctl
 %doc %_mandir/man8/lldp*
-%dir %attr(750,root,root) %lldpd_chroot
+%dir %attr(750,root,root) %{chroot}
 %config(noreplace) /etc/sysconfig/lldpd
 %attr(755,root,root) /etc/rc.d/init.d/*
