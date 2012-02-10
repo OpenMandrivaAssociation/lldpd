@@ -86,7 +86,6 @@ install -m755 %{SOURCE1} %{buildroot}/etc/rc.d/init.d/lldpd
 %files
 %defattr(-,root,root,-)
 %doc CHANGELOG
-%doc %_docdir/lldpd/README.md
 %_sbindir/lldpd
 %_sbindir/lldpctl
 %doc %_mandir/man8/lldp*
