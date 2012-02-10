@@ -4,15 +4,14 @@
 
 Summary: implementation of IEEE 802.1ab (LLDP)
 Name: lldpd
-Version: 0.5.2
-Release: %mkrel 1
+Version: 0.5.6
+Release: 1
 License: MIT
 Group: System/Servers
 URL: https://trac.luffy.cx/lldpd/
 Source0: http://www.luffy.cx/lldpd/%{name}-%{version}.tar.gz
 Source1: lldpd.init
 Source2: lldpd.sysconfig
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root
 
 %if %with_snmp
 BuildRequires: net-snmp-devel
@@ -39,6 +38,7 @@ protocol. It also handles LLDP-MED extension.
 %prep
 %setup -q
 %build
+autoreconf -fi
 %{__aclocal} -I m4 --install
 %{__autoconf} --force
 %{__automake} --force
@@ -63,8 +63,7 @@ protocol. It also handles LLDP-MED extension.
 %make
 
 %install
-rm -rf %{buildroot}
-make install DESTDIR=%{buildroot}
+%makeinstall_std
 install -d -m770  %{buildroot}/%{chroot}
 install -d %{buildroot}/etc/rc.d/init.d
 install -d %{buildroot}/etc/sysconfig
@@ -90,7 +89,7 @@ install -m755 %{SOURCE1} %{buildroot}/etc/rc.d/init.d/lldpd
 %files
 %defattr(-,root,root,-)
 %doc CHANGELOG
-%doc %_docdir/lldpd/README
+%doc %_docdir/lldpd/README*
 %_sbindir/lldpd
 %_sbindir/lldpctl
 %doc %_mandir/man8/lldp*
