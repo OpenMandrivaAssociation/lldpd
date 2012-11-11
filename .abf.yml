@@ -1,0 +1,4 @@
+sources:
+  "lldpd-0.5.6.tar.gz:"	bac4bdc65745f8c05c7db5f2064f68e9501fc7e4
+  "lldpd.init:"	42c940d0d448750e1e7122ee3721c950c1aa079e
+  "lldpd.sysconfig:"	12597e918ad5ab4e1aa7cb4e547ccc6f5fe60fad
