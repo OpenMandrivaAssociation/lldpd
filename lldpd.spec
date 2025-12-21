@@ -14,6 +14,11 @@ Source1: lldpd.init
 Source2: lldpd.sysconfig
 
 %if %with_snmp
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	libtool-base
+BuildRequires:	slibtool
+BuildRequires:	make
 BuildRequires: net-snmp-devel
 Requires:      net-snmp
 %endif
